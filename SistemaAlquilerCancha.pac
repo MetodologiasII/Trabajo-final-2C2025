@@ -21,7 +21,7 @@ package globalAliases: (Set new
 	yourself).
 
 package setPrerequisites: #(
-	'..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin').
+	'..\..\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin').
 
 package!
 
@@ -1911,6 +1911,12 @@ Cliente comment: ''!
 
 !Cliente methodsFor!
 
+iniClienteId: unId nombre: unNombre telefono: unTelelefono email:unEmail
+id:=unId.
+nombre:=unNombre.
+telefono:=unTelelefono.
+email:=unEmail.!
+
 modiEmail: unEmail
 email := unEmail!
 
@@ -1936,6 +1942,7 @@ verTelefono^
 telefono! !
 
 !Cliente categoriesForMethods!
+iniClienteId:nombre:telefono:email:!public! !
 modiEmail:!public! !
 modiId:!public! !
 modiNombre:!public! !
@@ -1948,11 +1955,15 @@ verTelefono!public! !
 
 !Cliente class methodsFor!
 
+crearCliente:unId nom:unNom tel:unTel emai:unEmail
+^(self new) iniClienteId: unId nombre: unNom telefono: unTel email: unEmail.!
+
 id: unId nombre: unNombre telefono: unTelefono email: unEmail
 
 ^self new modiId: unId; modiNombre: unNombre; modiTelefono: unTelefono; modiEmail: unEmail! !
 
 !Cliente class categoriesForMethods!
+crearCliente:nom:tel:emai:!public! !
 id:nombre:telefono:email:!public! !
 !
 
