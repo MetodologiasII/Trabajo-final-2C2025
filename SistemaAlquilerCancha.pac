@@ -6,6 +6,7 @@ package paxVersion: 1;
 package classNames
 	add: #Cancha;
 	add: #Cliente;
+	add: #GeneradorDeDatos;
 	add: #MetodoPago;
 	add: #Object;
 	add: #Pago;
@@ -21,7 +22,7 @@ package globalAliases: (Set new
 	yourself).
 
 package setPrerequisites: #(
-	'..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin').
+	'..\..\..\..\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin').
 
 package!
 
@@ -45,6 +46,12 @@ Object subclass: #Cliente
 	poolDictionaries: ''
 	classInstanceVariableNames: ''!
 
+Object subclass: #GeneradorDeDatos
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	classInstanceVariableNames: ''!
+
 Object subclass: #MetodoPago
 	instanceVariableNames: 'id descripcion'
 	classVariableNames: ''
@@ -58,7 +65,7 @@ Object subclass: #Pago
 	classInstanceVariableNames: ''!
 
 Object subclass: #Reserva
-	instanceVariableNames: 'id fechaAlta importeTotal clienteId canchaId reservaEstado'
+	instanceVariableNames: 'id fechaAlta importeTotal clienteId canchaId reservaEstado turnoId'
 	classVariableNames: ''
 	poolDictionaries: ''
 	classInstanceVariableNames: ''!
@@ -1911,6 +1918,12 @@ Cliente comment: ''!
 
 !Cliente methodsFor!
 
+iniClienteId: unId nombre: unNombre telefono: unTelelefono email:unEmail
+id:=unId.
+nombre:=unNombre.
+telefono:=unTelelefono.
+email:=unEmail.!
+
 modiEmail: unEmail
 email := unEmail!
 
@@ -1936,6 +1949,7 @@ verTelefono^
 telefono! !
 
 !Cliente categoriesForMethods!
+iniClienteId:nombre:telefono:email:!public! !
 modiEmail:!public! !
 modiId:!public! !
 modiNombre:!public! !
@@ -1948,12 +1962,72 @@ verTelefono!public! !
 
 !Cliente class methodsFor!
 
+crearCliente:unId nom:unNom tel:unTel emai:unEmail
+^(self new) iniClienteId: unId nombre: unNom telefono: unTel email: unEmail.!
+
 id: unId nombre: unNombre telefono: unTelefono email: unEmail
 
 ^self new modiId: unId; modiNombre: unNombre; modiTelefono: unTelefono; modiEmail: unEmail! !
 
 !Cliente class categoriesForMethods!
+crearCliente:nom:tel:emai:!public! !
 id:nombre:telefono:email:!public! !
+!
+
+GeneradorDeDatos guid: (GUID fromString: '{202bb2c7-8699-4e72-944f-612cba38491f}')!
+
+GeneradorDeDatos comment: ''!
+
+!GeneradorDeDatos categoriesForClass!Unclassified! !
+
+!GeneradorDeDatos class methodsFor!
+
+generarCanchas: listaDeTurnosPorCancha
+
+| canchas cancha |
+
+canchas := OrderedCollection new.
+
+1 to: 5 do: [ :i |
+			[ i <= 2 ] value
+			ifTrue: [ cancha := Cancha id: i descripcion: 'Cancha de futbol 5' tipo: 'F5' precioBaseHora: '1000' listaDeTurnos: listaDeTurnosPorCancha ]
+			ifFalse: [
+					[ i <= 4 ] value
+					ifTrue: [cancha := Cancha id: i descripcion: 'Cancha de futbol 7' tipo: 'F7' precioBaseHora: '1500' listaDeTurnos: listaDeTurnosPorCancha]
+					ifFalse: [cancha := Cancha id: i descripcion: 'Cancha de futbol 9' tipo: 'F9' precioBaseHora: '2500' listaDeTurnos: listaDeTurnosPorCancha]
+				].
+			canchas add: cancha.
+		].	
+
+	^canchas
+!
+
+generarTurnos
+
+| listaDeTurnos fechaHoraBase fechaHoraTurno |
+
+listaDeTurnos := OrderedCollection new.
+
+"Seteo de FechaHoraBase para el dia de Hoy a las 12:00 hs"
+fechaHoraBase := DateAndTime today + (Duration hours: 11).
+
+1 to: 7 do: [ :i |
+	"La variable i almacena el contador de las fechas (El bucle se repite 7 veces simulando una semana)"
+	"Se toma como fecha y hora inicial el dia de mañana a las 12:00 hs"
+	fechaHoraTurno := fechaHoraBase + (Duration days: i).
+	
+	0 to: 10 do: [ :j |
+		"La variable j almacena el contador de las horas (El segundo bucle se repite 10 veces por cada iteracion del bucle anterior)"
+		fechaHoraTurno := fechaHoraTurno + (Duration hours: 1).
+		listaDeTurnos add: fechaHoraTurno.
+	]	
+].
+
+^listaDeTurnos! !
+
+!GeneradorDeDatos class categoriesForMethods!
+generarCanchas:!public! !
+generarTurnos!public! !
 !
 
 MetodoPago guid: (GUID fromString: '{741d785a-d0b0-4800-ad4a-bed78f39424d}')!
@@ -2115,6 +2189,14 @@ verImporteTotal!public! !
 verReservaEstado!public! !
 !
 
+!Reserva class methodsFor!
+
+id: unId clienteId: clienteId cantidadHoras: horas turnoId: turnoId! !
+
+!Reserva class categoriesForMethods!
+id:clienteId:cantidadHoras:turnoId:!public! !
+!
+
 SistemaAlquiler guid: (GUID fromString: '{d82161ad-778d-4db5-a21f-cdce9684218b}')!
 
 SistemaAlquiler comment: ''!
@@ -2123,30 +2205,23 @@ SistemaAlquiler comment: ''!
 
 !SistemaAlquiler methodsFor!
 
+agregarCancha: unaCancha
+canchas add: unaCancha!
+
+buscarCliente: id
+^clientes detect: [ :cliente | cliente verId = id ] ifNone: [^nil]!
+
 cancelarReserva: reservaId
-"
-Cancela una reserva registrada. Si el id de la reserva no existe, retorna nil, de lo contrario, retorna la reserva con el estado 'CANCELADO'.
-"
-| reservaAlmacenada |
-"Busqueda de reserva en la coleccion de reservas del sistema. Si no encuenta la key retorna nil"
-reservaAlmacenada := reservas at: reservaId ifAbsent: [^nil].
-
-"Modificacion de estado de reserva"
-reservaAlmacenada modiEstado: 'CANCELADA'.
-
-"Almacenamiento de la reserva modificada en la coleccion del sistema"
-reservas at: reservaId put: reservaAlmacenada.
-^reservaAlmacenada
 
 !
 
 initialize
 	super initialize.
 
-	clientes := Dictionary new.
-	canchas := Dictionary new.
-	reservas := Dictionary new.
-	pagos := Dictionary new.
+	clientes := OrderedCollection new.
+	canchas := OrderedCollection new.
+	reservas := OrderedCollection new.
+	pagos := OrderedCollection new.
 	nombre := 'Sistema De Alquiler de Canchas'
 	
 !
@@ -2155,11 +2230,10 @@ modiNombre: unNombre
 nombre := unNombre!
 
 registrarCliente: unCliente
-clientes at: unCliente verId put: unCliente!
+clientes add: unCliente!
 
 registrarPago: unPago
-
-pagos at: unPago verId put: unPago!
+pagos add: unPago!
 
 verCanchas^
 canchas!
@@ -2173,9 +2247,22 @@ verPagos^
 pagos!
 
 verReservas^
-reservas! !
+reservas!
+
+verReservasCanceladas
+| canceladas |
+canceladas := reservas select: [:reserva | reserva verEstado = 'CANCELADO'].
+^canceladas!
+
+verReservasPendientes
+| pendientes |
+pendientes := reservas select: [:reserva | reserva verEstado = 'PENDIENTE'].
+^pendientes
+! !
 
 !SistemaAlquiler categoriesForMethods!
+agregarCancha:!public! !
+buscarCliente:!public! !
 cancelarReserva:!public! !
 initialize!public! !
 modiNombre:!public! !
@@ -2186,6 +2273,8 @@ verClientes!public! !
 verNombre!public! !
 verPagos!public! !
 verReservas!public! !
+verReservasCanceladas!public! !
+verReservasPendientes!public! !
 !
 
 Turno guid: (GUID fromString: '{7d3fe4ba-af6b-4a46-ae09-c970d0f0030d}')!
