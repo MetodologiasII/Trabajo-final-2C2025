@@ -2003,8 +2003,7 @@ canchas := OrderedCollection new.
 !
 
 generarTurnos
-
-| listaDeTurnos fechaHoraBase fechaHoraTurno |
+| listaDeTurnos fechaHoraBase fechaHoraTurno turno |
 
 listaDeTurnos := OrderedCollection new.
 
@@ -2019,7 +2018,8 @@ fechaHoraBase := DateAndTime today + (Duration hours: 11).
 	0 to: 10 do: [ :j |
 		"La variable j almacena el contador de las horas (El segundo bucle se repite 10 veces por cada iteracion del bucle anterior)"
 		fechaHoraTurno := fechaHoraTurno + (Duration hours: 1).
-		listaDeTurnos add: fechaHoraTurno.
+		turno := Turno id: (i printString,  j printString) fechaHoraInicio: fechaHoraTurno fechaHoraFin: (fechaHoraTurno  + (Duration minutes: 59) ) estado: 'DISPONIBLE'.
+		listaDeTurnos add: turno.
 	]	
 ].
 
@@ -2211,6 +2211,9 @@ canchas add: unaCancha!
 buscarCliente: id
 ^clientes detect: [ :cliente | cliente verId = id ] ifNone: [^nil]!
 
+buscarPago: unId
+^ pagos at: unId ifAbsent: [^nil]!
+
 cancelarReserva: reservaId
 
 !
@@ -2221,8 +2224,8 @@ initialize
 	clientes := OrderedCollection new.
 	canchas := OrderedCollection new.
 	reservas := OrderedCollection new.
-	pagos := OrderedCollection new.
-	nombre := 'Sistema De Alquiler de Canchas'
+	pagos := Dictionary new.
+	nombre := 'Sistema De Alquiler de Canchas'.
 	
 !
 
@@ -2233,7 +2236,7 @@ registrarCliente: unCliente
 clientes add: unCliente!
 
 registrarPago: unPago
-pagos add: unPago!
+pagos at: unPago verId put: unPago!
 
 verCanchas^
 canchas!
@@ -2263,6 +2266,7 @@ pendientes := reservas select: [:reserva | reserva verEstado = 'PENDIENTE'].
 !SistemaAlquiler categoriesForMethods!
 agregarCancha:!public! !
 buscarCliente:!public! !
+buscarPago:!public! !
 cancelarReserva:!public! !
 initialize!public! !
 modiNombre:!public! !
