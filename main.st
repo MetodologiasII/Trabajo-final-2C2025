@@ -1,4 +1,4 @@
-﻿|sistema canchas acciones salir |
+﻿|sistema canchas acciones salir porcentajeAumento valido|
 
 "Asignacion de datos iniciales"
 sistema := SistemaAlquilerDeCanchas new initialize.
@@ -46,6 +46,24 @@ acciones := Dictionary new.
 		Transcript show: '------- RESERVAS DEL CLIENTE -------'; cr.
 		sistema verReservasDeCliente.
 	].
+	acciones at: '7' put: [
+		Transcript show: '------- AUMENTAR PRECIOS DE CANCHAS -------'; cr.
+		valido := true.	
+		[porcentajeAumento := (Prompter prompt: 'Ingrese el porcentaje de aumento en formato decimal.') asNumber]
+		on: Error do: [:ex | 
+			MessageBox notify: 'El porcentaje debe ser un numero.'.
+			valido := false.
+		].
+		(valido) ifTrue: [
+			(MessageBox  confirm: 'Confirmar aumento?.' )
+			ifTrue: [
+				sistema aumentarPrecioCanchas: porcentajeAumento.
+			]
+			ifFalse: [
+			 MessageBox notify: 'Aumento cancelado.'.
+			].
+		].
+	].
 
 "Menu"
 salir := false.
@@ -59,12 +77,12 @@ salir := false.
 	Transcript show: '4. Listar Todos Los Clientes'; cr.
 	Transcript show: '5. Realizar Pago de Reserva'; cr. 
 	Transcript show: '6. Ver Reservas de un Cliente'; cr. 
+	Transcript show: '7. Aumentar precios de canchas.'; cr. 
 	Transcript show: '0. Salir'; cr.
 	Transcript show: '---------------------------------'; cr.
 	opcion := Prompter prompt: 'Seleccione una opcion: '.	
 	Transcript show: 'Opción ingresada: ', opcion; cr.
-	
-		
+
 	"Ejecución de accion asociada a opcion elegida"
 	bloqueAccion := acciones at: opcion 
 						  ifAbsent: [ 

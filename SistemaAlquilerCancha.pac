@@ -530,14 +530,10 @@ turnoId:!public! !
 
 !Reserva class methodsFor!
 
-id: unId dniCliente: unDniCliente canchaId: unCanchaId turnoId: unTurnoId estado: unEstado
-^self new id: unId; dniCliente: unDniCliente; canchaId: unCanchaId; turnoId: unTurnoId ;estado: unEstado.!
-
 id: unId dniCliente: unDniCliente canchaId: unCanchaId turnoId: unTurnoId estado: unEstado estadoPago: unEstadoPago
 ^self new id: unId; dniCliente: unDniCliente; canchaId: unCanchaId; turnoId: unTurnoId ;estado: unEstado; estadoPago: unEstadoPago .! !
 
 !Reserva class categoriesForMethods!
-id:dniCliente:canchaId:turnoId:estado:!public! !
 id:dniCliente:canchaId:turnoId:estado:estadoPago:!public! !
 !
 
@@ -548,6 +544,10 @@ SistemaAlquilerDeCanchas comment: ''!
 !SistemaAlquilerDeCanchas categoriesForClass!Kernel-Objects! !
 
 !SistemaAlquilerDeCanchas methodsFor!
+
+aumentarPrecioCanchas: porcentajeDeAumento
+canchas collect: [:c | c precioHora: (c precioHora * (1 + porcentajeDeAumento)) ].
+	!
 
 buscarCancha: canchaId
 ^canchas detect: [:c | c id = canchaId ] ifNone: [^nil].!
@@ -704,7 +704,6 @@ metodoPago := self buscarMetodoPago: idMetodoPago.
 (metodoPago isNil) ifTrue: [
 	MessageBox notify: 'La opción ingresada no pertenece a ningun metodo de pago. La operación fue cancelada.'.
 	^self.
-
 ].
 
 Transcript show: '---- DETALLES DEL PAGO ----';cr.
@@ -732,6 +731,11 @@ dniCliente := Prompter prompt: 'Ingrese el DNI del cliente'.
 ifFalse: [
 	MessageBox notify: 'El cliente con DNI ', dniCliente, ' no se encuentra registrado'.
 	^self.
+].
+((self reservasNoCanceladasDeCliente: dniCliente) size = 0)
+ifTrue: [
+	MessageBox notify: 'El cliente no posee reservas sin pagar.'.
+	^self
 ].
 
 "Impresion de reservas no pagas del cliente"
@@ -763,6 +767,12 @@ ifTrue: [
 	MessageBox notify: 'El ID ingresado no pertenece a ninguna de sus reservas.'.
 	^self
 ].
+(reserva  estado = 'CANCELADO' )
+ifTrue: [
+	MessageBox notify: 'El ID ingresado pertenece a una reserva cancelada.'.
+	^self.
+].
+
 
 (reserva estadoPago = 'COMPLETO')
 ifTrue: [
@@ -810,7 +820,7 @@ registrarCliente
 		MessageBox notify: 'Registro cancelado.'.
 		^self.
 	].
-	clientes  add: cliente.
+	self registrarCliente: cliente.
 	MessageBox notify: 'Cliente registrado exitosamente...'.
 !
 
@@ -979,6 +989,7 @@ ifFalse: [
 MessageBox notify: 'Presione ENTER para continuar.'.! !
 
 !SistemaAlquilerDeCanchas categoriesForMethods!
+aumentarPrecioCanchas:!public! !
 buscarCancha:!public! !
 buscarCliente:!public! !
 buscarMetodoPago:!public! !
